@@ -21,7 +21,8 @@ pipeline {
                 sh 'curl http://host.docker.internal:3000'
             }
         }
-         stage('OWASP ZAP Baseline Scan') {
+
+        stage('OWASP ZAP Baseline Scan') {
             steps {
                 script {
                     // Uruchomienie ZAP-a i wykonanie pasywnego skanu
@@ -34,13 +35,12 @@ pipeline {
                 }
             }
         }
+
         stage('Archive Report') {
             steps {
                 // Archiwizuj raport jako artefakt
                 archiveArtifacts artifacts: 'zap-report.html', allowEmptyArchive: true
             }
         }
-    }
-
     }
 }
