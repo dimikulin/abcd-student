@@ -20,6 +20,5 @@ pipeline {
                 sh 'docker ps'
             }
         }
-        }
     }
 }
