@@ -18,6 +18,7 @@ pipeline {
             steps {
                 echo 'Hello!'
                 sh 'docker ps'
+                sh 'curl http://host.docker.internal:3000'
             }
         }
     }
