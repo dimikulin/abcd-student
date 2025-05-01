@@ -21,20 +21,17 @@ pipeline {
             }
         }
 
-        stage('ZAP DAST Scan') {
-            steps {
-                sh '''
-                    docker run --rm \
-                      --network host \
-                      -v $(pwd):/zap/wrk/:rw \
-                      ghcr.io/zaproxy/zaproxy:latest \
-                      -t http://host.docker.internal:3000 \
-                      -r zap-report.html \
-                      -J zap-report.json
-                '''
-            }
-        }
+       stage('ZAP DAST Scan') {
+    steps {
+        sh '''
+            docker run --rm \
+              --network host \
+              -v $(pwd):/zap/wrk/:rw \
+              ghcr.io/zaproxy/zaproxy:latest \
+              zap-baseline.py -t http://host.docker.internal:3000 -r zap-report.html -J zap-report.json
+        '''
     }
+}
 
     post {
         always {
