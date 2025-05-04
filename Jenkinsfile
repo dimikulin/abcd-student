@@ -21,46 +21,45 @@ pipeline {
         }
 
 
-      stage('[ZAP] Baseline passive-scan') {
+    stage('[ZAP] Baseline passive-scan') {
     steps {
         sh 'mkdir -p results/'
-
+        
+        // Run Juice Shop container
         sh '''
             docker run --name juice-shop -d --rm \
                 -p 3000:3000 \
                 bkimminich/juice-shop
             sleep 5
         '''
-
-        // Start ZAP container in background
+        
+        // Copy ZAP configuration folder from the workspace to the container
         sh '''
-            docker run -d --name zap \
+            docker cp ${WORKSPACE}/zap zap:/zap/wrk/zap
+        '''
+        
+        // Run ZAP with the passive scan configuration
+        sh '''
+            docker run --name zap \
                 --add-host=host.docker.internal:host-gateway \
                 -v ${WORKSPACE}/results:/zap/wrk/results \
                 -w /zap/wrk \
-                -t ghcr.io/zaproxy/zaproxy:stable sleep 30
-        '''
-
-        // Copy zap config folder into container
-        sh 'docker cp ${WORKSPACE}/zap zap:/zap/wrk/zap'
-
-        // Run scan using copied config
-        sh '''
-            docker exec zap bash -c "\
-                zap.sh -cmd -addonupdate && \
-                zap.sh -cmd -addoninstall communityScripts && \
-                zap.sh -cmd -addoninstall pscanrulesAlpha && \
-                zap.sh -cmd -addoninstall pscanrulesBeta && \
-                zap.sh -cmd -autorun zap/passive_scan.yaml"
+                -t ghcr.io/zaproxy/zaproxy:stable bash -c \
+                "zap.sh -cmd -addonupdate; \
+                zap.sh -cmd -addoninstall communityScripts; \
+                zap.sh -cmd -addoninstall pscanrulesAlpha; \
+                zap.sh -cmd -addoninstall pscanrulesBeta; \
+                zap.sh -cmd -autorun /zap/wrk/zap/passive_scan.yaml" || true
         '''
     }
     post {
         always {
+            // Copy the report files from the container to the Jenkins workspace
             sh '''
                 docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
                 docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml || true
-                docker stop zap || true
-                docker rm zap || true
+                docker stop zap juice-shop || true
+                docker rm zap juice-shop || true
             '''
         }
     }
