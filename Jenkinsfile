@@ -20,6 +20,18 @@ pipeline {
             }
         }
 
+        stage('Fix permissions') {
+    steps {
+        sh 'chmod -R 755 zap/'
+    }
+}
+          stage('Verify zap config') {
+            steps {
+                sh 'ls -la zap/'
+            }
+        }
+
+
 stage('[ZAP] Baseline passive-scan') {
     steps {
         sh 'mkdir -p results/'
