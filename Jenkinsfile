@@ -22,25 +22,30 @@ pipeline {
             }
         }
 
-        stage('OWASP ZAP Baseline Scan') {
-            steps {
-                script {
-                    // Uruchomienie ZAP-a i wykonanie pasywnego skanu
-                    sh '''
-                        docker run --rm -u zap \
-                          -v $WORKSPACE:/zap/wrk \
-                          owasp/zap2docker-stable \
-                          zap-baseline.py -t http://localhost:3000/#/ -r zap-report.html || true
-                    '''
-                }
-            }
+        stage('[ZAP] Baseline passive-scan') {
+    steps {
+        sh 'mkdir -p results/'
+        sh '''
+            docker run --name zap \
+                --add-host=host.docker.internal:host-gateway \
+                -v /path/to/dir/with/passive/scan/yaml:/zap/wrk/:rw
+                -t ghcr.io/zaproxy/zaproxy:stable bash -c \
+                "zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive_scan.yaml" \
+                || true
+        '''
+    }
+    post {
+        always {
+            sh '''
+                docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html
+                docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml
+                docker stop zap juice-shop
+                docker rm zap
+            '''
         }
+    }
+}
 
-        stage('Archive Report') {
-            steps {
-                // Archiwizuj raport jako artefakt
-                archiveArtifacts artifacts: 'zap-report.html', allowEmptyArchive: true
-            }
-        }
+
     }
 }
