@@ -20,31 +20,33 @@ pipeline {
             }
         }
 
-
-    stage('[ZAP] Baseline passive-scan') {
+stage('[ZAP] Baseline passive-scan') {
     steps {
         sh 'mkdir -p results/'
         
-        // Run Juice Shop container
+        // Uruchomienie kontenera Juice Shop
         sh '''
-            docker run --name juice-shop -d --rm \
-                -p 3000:3000 \
-                bkimminich/juice-shop
+            docker run --name juice-shop -d --rm -p 3000:3000 bkimminich/juice-shop
             sleep 5
         '''
         
-        // Copy ZAP configuration folder from the workspace to the container
-        sh '''
-            docker cp ${WORKSPACE}/zap zap:/zap/wrk/zap
-        '''
-        
-        // Run ZAP with the passive scan configuration
+        // Uruchomienie kontenera ZAP
         sh '''
             docker run --name zap \
                 --add-host=host.docker.internal:host-gateway \
                 -v ${WORKSPACE}/results:/zap/wrk/results \
                 -w /zap/wrk \
-                -t ghcr.io/zaproxy/zaproxy:stable bash -c \
+                -t ghcr.io/zaproxy/zaproxy:stable sleep 30
+        '''
+        
+        // Kopiowanie katalogu ZAP do kontenera
+        sh '''
+            docker cp ${WORKSPACE}/zap zap:/zap/wrk/zap
+        '''
+        
+        // Uruchomienie ZAP z pasywnym skanowaniem
+        sh '''
+            docker exec zap bash -c \
                 "zap.sh -cmd -addonupdate; \
                 zap.sh -cmd -addoninstall communityScripts; \
                 zap.sh -cmd -addoninstall pscanrulesAlpha; \
@@ -54,7 +56,7 @@ pipeline {
     }
     post {
         always {
-            // Copy the report files from the container to the Jenkins workspace
+            // Kopiowanie raportów z kontenera ZAP do workspace
             sh '''
                 docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
                 docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml || true
