@@ -25,7 +25,7 @@ pipeline {
         sh 'chmod -R 755 zap/'
     }
 }
-          stage('Verify zap config') {
+          stage('Verify zap config 2') {
             steps {
                 sh 'ls -la zap/'
             }
