@@ -14,14 +14,6 @@ pipeline {
             }
         }
 
-        stage('Example') {
-            steps {
-                echo 'Hello!'
-                sh 'docker ps'
-                sh 'curl http://host.docker.internal:3000'
-            }
-        }
-
         stage('[ZAP] Baseline passive-scan') {
     steps {
         sh 'mkdir -p results/'
