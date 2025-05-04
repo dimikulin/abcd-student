@@ -43,7 +43,7 @@ stage('[ZAP] Baseline passive-scan') {
         // Sprawdzenie katalogu przed uruchomieniem kontenera ZAP
         sh 'echo "Mounting ${WORKSPACE}/zap to /zap/wrk"; ls -la ${WORKSPACE}/zap'
      sh '''
-    docker run --rm --add-host=host.docker.internal:host-gateway -v /var/jenkins_home/workspace/Example/zap:/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable bash -c "
+    docker run --rm --add-host=host.docker.internal:host-gateway -v /zap:/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable bash -c "
         echo '=== Listing files in /zap ===';
         ls -la /zap;
         echo '=== Checking passive_scan.yaml content ===';
