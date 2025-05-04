@@ -44,8 +44,8 @@ stage('[ZAP] Baseline passive-scan') {
         sh 'echo "Mounting ${WORKSPACE}/zap to /zap/wrk"; ls -la ${WORKSPACE}/zap'
         sh '''
             docker run --rm --add-host=host.docker.internal:host-gateway -v ${WORKSPACE}/zap:/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable bash -c "
-                echo '=== Listing files in /zap/wrk/zap ===';
-                ls -la /zap/wrk/zap;
+                echo '=== Listing files in /zap ===';
+                ls -la /zap;
                 echo '=== Checking passive_scan.yaml content ===';
                 cat /zap/wrk/passive_scan.yaml || echo 'MISSING passive_scan.yaml';
                 echo '=== Starting ZAP ===';
