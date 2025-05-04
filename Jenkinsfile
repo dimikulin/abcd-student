@@ -20,40 +20,19 @@ pipeline {
             }
         }
 
-        stage('[ZAP] Baseline passive-scan') {
+        stage('Debug ZAP config visibility inside container') {
             steps {
-                sh 'mkdir -p results/'
-
                 sh '''
-                    docker run --name juice-shop -d --rm \
-                        -p 3000:3000 \
-                        bkimminich/juice-shop
-                    sleep 5
+                    echo "Files visible INSIDE ZAP container:"
+                    docker run --rm \
+                        --add-host=host.docker.internal:host-gateway \
+                        -v ${WORKSPACE}/zap:/zap/wrk/:rw \
+                        -w /zap/wrk \
+                        -t ghcr.io/zaproxy/zaproxy:stable bash -c "ls -la /zap/wrk"
                 '''
-
-                sh '''
-                    docker run --name zap \
-    --add-host=host.docker.internal:host-gateway \
-    -v ${WORKSPACE}/zap:/zap/wrk/:rw \
-    -w /zap/wrk \
-    -t ghcr.io/zaproxy/zaproxy:stable bash -c "\
-    zap.sh -cmd -addonupdate && \
-    zap.sh -cmd -addoninstall communityScripts && \
-    zap.sh -cmd -addoninstall pscanrulesAlpha && \
-    zap.sh -cmd -addoninstall pscanrulesBeta && \
-    zap.sh -cmd -autorun passive_scan.yaml"
-                '''
-            }
-            post {
-                always {
-                    sh '''
-                        docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
-                        docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml || true
-                        docker stop zap || true
-                        docker rm zap || true
-                    '''
-                }
             }
         }
+
+      
     }
 }
