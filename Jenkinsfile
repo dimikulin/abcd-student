@@ -34,46 +34,37 @@ pipeline {
 
 stage('[ZAP] Baseline passive-scan') {
     steps {
-        // Tworzymy katalog na wyniki
         sh 'mkdir -p results/'
-
-        // Uruchamiamy kontener Juice Shop
         sh '''
-            docker run --name juice-shop -d --rm \
-                -p 3000:3000 \
-                bkimminich/juice-shop
+            docker run --name juice-shop -d --rm -p 3000:3000 bkimminich/juice-shop
             sleep 5
         '''
 
-        // Sprawdzamy pliki w lokalnym katalogu 'zap' w Jenkins
-        sh 'ls -la ${WORKSPACE}/zap'
-
-        // Sprawdzamy, czy plik jest dostępny w kontenerze ZAP
+        // Sprawdzenie katalogu przed uruchomieniem kontenera ZAP
+        sh 'echo "Mounting ${WORKSPACE}/zap to /zap/wrk"; ls -la ${WORKSPACE}/zap'
         sh '''
-            docker run --rm \
-                --add-host=host.docker.internal:host-gateway \
-                -v ${WORKSPACE}/zap:/zap/wrk \
-                -t ghcr.io/zaproxy/zaproxy:stable bash -c "
-                    echo '=== Listing files in /zap/wrk ===';
-                    ls -la /zap/wrk;
-                    echo '=== Checking passive_scan.yaml content ===';
-                    cat /zap/wrk/passive_scan.yaml || echo 'MISSING passive_scan.yaml';
-                    echo '=== Starting ZAP ===';
-                    zap.sh -cmd -addonupdate;
-                    zap.sh -cmd -addoninstall communityScripts;
-                    zap.sh -cmd -addoninstall pscanrulesAlpha;
-                    zap.sh -cmd -addoninstall pscanrulesBeta;
-                    zap.sh -cmd -autorun /zap/wrk/passive_scan.yaml
-                "
+            docker run --rm --add-host=host.docker.internal:host-gateway -v ${WORKSPACE}/zap:/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable bash -c "
+                echo '=== Listing files in /zap/wrk ===';
+                ls -la /zap/wrk;
+                echo '=== Checking passive_scan.yaml content ===';
+                cat /zap/wrk/passive_scan.yaml || echo 'MISSING passive_scan.yaml';
+                echo '=== Starting ZAP ===';
+                zap.sh -cmd -addonupdate;
+                zap.sh -cmd -addoninstall communityScripts;
+                zap.sh -cmd -addoninstall pscanrulesAlpha;
+                zap.sh -cmd -addoninstall pscanrulesBeta;
+                zap.sh -cmd -autorun /zap/wrk/passive_scan.yaml
+            "
         '''
     }
     post {
         always {
-            // Kopiowanie raportów z kontenera ZAP do Jenkins
+            // Sprawdzenie, czy kontener ZAP działa przed próbą kopiowania raportów
             sh '''
+                docker ps -a
                 docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html
                 docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml
-                docker stop zap juice-shop
+                docker stop zap
                 docker rm zap
             '''
         }
