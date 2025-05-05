@@ -75,6 +75,7 @@ pipeline {
                         docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml || true
                         docker stop zap || true
                         docker rm zap || true
+                        docker stop juice-shop || true
                     '''
                 }
             }
