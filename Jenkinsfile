@@ -59,6 +59,7 @@ pipeline {
                         docker rm zap || true
                         docker stop juice-shop || true
                     '''
+                    archiveArtifacts artifacts: 'results/*.html, results/*.xml', allowEmptyArchive: true
                 }
             }
         }
