@@ -36,18 +36,19 @@ stage('[ZAP] Baseline passive-scan') {
     steps {
         sh 'mkdir -p results/'
 
-        sh '''
-            docker run --name juice-shop -d --rm -p 3000:3000 bkimminich/juice-shop
-            sleep 5
-        '''
+       sh '''
+    docker run --name juice-shop -d --rm -p 3000:3000 bkimminich/juice-shop
+    sleep 5
+'''
 
-        // Uruchom ZAP w tle
-        sh '''
-            docker run -d --name zap ghcr.io/zaproxy/zaproxy:stable sleep 1000
-        '''
+sh '''
+    docker run -d --name zap ghcr.io/zaproxy/zaproxy:stable sleep 1000
+'''
 
-        // Skopiuj skrypt ZAP z workspace do kontenera
-        sh 'docker cp zap/passive_scan.yaml zap:/zap/wrk/passive_scan.yaml'
+// <=== DODAJ TO:
+sh 'docker exec zap mkdir -p /zap/wrk'
+
+sh 'docker cp zap/passive_scan.yaml zap:/zap/wrk/passive_scan.yaml'
 
         // Uruchom polecenia ZAP wewnątrz kontenera
         sh '''
