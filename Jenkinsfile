@@ -33,7 +33,7 @@ pipeline {
 
 
 stage('[ZAP] Baseline passive-scan') {
-   steps {
+    steps {
         sh 'mkdir -p results/'
 
         sh '''
@@ -41,23 +41,31 @@ stage('[ZAP] Baseline passive-scan') {
             sleep 5
         '''
 
+        // Uruchom ZAP w tle
         sh '''
-            docker run --name zap --add-host=host.docker.internal:host-gateway -v ${WORKSPACE}:/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable bash -c "
+            docker run -d --name zap ghcr.io/zaproxy/zaproxy:stable sleep 1000
+        '''
+
+        // Skopiuj skrypt ZAP z workspace do kontenera
+        sh 'docker cp zap/passive_scan.yaml zap:/zap/wrk/passive_scan.yaml'
+
+        // Uruchom polecenia ZAP wewnątrz kontenera
+        sh '''
+            docker exec zap bash -c "
                 echo '=== Starting ZAP ===';
                 zap.sh -cmd -addonupdate;
                 zap.sh -cmd -addoninstall communityScripts;
                 zap.sh -cmd -addoninstall pscanrulesAlpha;
                 zap.sh -cmd -addoninstall pscanrulesBeta;
-                zap.sh -cmd -autorun /zap/wrk/zap/passive_scan.yaml
+                zap.sh -cmd -autorun /zap/wrk/passive_scan.yaml
             "
         '''
     }
     post {
-       always {
+        always {
             sh '''
-                docker ps -a
-                docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || echo "HTML report not found"
-                docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml || echo "XML report not found"
+                docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
+                docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml || true
                 docker stop zap || true
                 docker rm zap || true
             '''
