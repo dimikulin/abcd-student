@@ -39,9 +39,6 @@ stage('[ZAP] Baseline passive-scan') {
             docker run --name juice-shop -d --rm -p 3000:3000 bkimminich/juice-shop
             sleep 5
         '''
-
-        // Sprawdzenie katalogu przed uruchomieniem kontenera ZAP
-        sh 'echo "Mounting /zap to /zap/wrk"; ls -la /zap'
      sh '''
     docker run --rm --add-host=host.docker.internal:host-gateway -v /zap:/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable bash -c "
         echo '=== Starting ZAP ===';
