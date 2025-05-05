@@ -53,7 +53,7 @@ stage('[ZAP] Baseline passive-scan') {
         zap.sh -cmd -addoninstall communityScripts;
         zap.sh -cmd -addoninstall pscanrulesAlpha;
         zap.sh -cmd -addoninstall pscanrulesBeta;
-        zap.sh -cmd -autorun /zap/wrk/passive_scan.yaml
+        zap.sh -cmd -autorun ${WORKSPACE}/zap/passive_scan.yaml
     "
 '''
     }
