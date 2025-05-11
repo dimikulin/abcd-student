@@ -78,7 +78,7 @@ pipeline {
                 // Uruchom skanowanie
                 sh '''
                     if [ -f package-lock.json ]; then
-                        osv-scanner --lockfile=package-lock.json --json > results/osv_scan_report.json || true
+                          osv-scanner scan --lockfile package-lock.json > results/osv_scan_report.json || true
                     else
                         echo "package-lock.json not found. Skipping OSV scan."
                     fi
