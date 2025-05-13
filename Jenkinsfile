@@ -18,7 +18,7 @@ pipeline {
             steps {
                 sh 'mkdir -p results/'
                 sh '''
-                    trufflehog git file://. --since-commit master --branch feature/example --only-verified --fail > results/trufflehog_report.txt || true
+                    trufflehog git file://. --since-commit main --branch feature/example --only-verified --fail > results/trufflehog_report.txt || true
                 '''
             }
 
