@@ -63,7 +63,8 @@ pipeline {
                 }
             }
         }
-          stage('OSV-Scanner Analysis') {
+
+        stage('OSV-Scanner Analysis') {
             steps {
                 sh 'mkdir -p results/'
 
@@ -88,6 +89,21 @@ pipeline {
             post {
                 always {
                     archiveArtifacts artifacts: 'results/osv_scan_report.json', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('TruffleHog Scan') {
+            steps {
+                sh 'mkdir -p results/'
+                sh '''
+                    trufflehog git file://. --since-commit master --branch feature/example --only-verified --fail > results/trufflehog_report.txt || true
+                '''
+            }
+
+            post {
+                always {
+                    archiveArtifacts artifacts: 'results/trufflehog_report.txt', allowEmptyArchive: true
                 }
             }
         }
