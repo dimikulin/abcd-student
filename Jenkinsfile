@@ -54,7 +54,6 @@ pipeline {
                 always {
                     sh '''
                         docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
-                        docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml || true
                         docker stop zap || true
                         docker rm zap || true
                         docker stop juice-shop || true
