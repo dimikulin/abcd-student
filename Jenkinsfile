@@ -106,5 +106,32 @@ pipeline {
                 }
             }
         }
+
+        stage('Semgrep Analysis') {
+            steps {
+                sh 'mkdir -p results/'
+
+                // Instalacja Semgrep
+                sh '''
+                    if ! command -v semgrep &> /dev/null; then
+                        echo "Semgrep not found, installing..."
+                        pip install semgrep
+                    else
+                        echo "Semgrep already installed."
+                    fi
+                '''
+
+                // Wykonanie skanowania
+                sh '''
+                    semgrep --config auto --json > results/semgrep_report.json || true
+                '''
+            }
+
+            post {
+                always {
+                    archiveArtifacts artifacts: 'results/semgrep_report.json', allowEmptyArchive: true
+                }
+            }
+        }
     }
 }
