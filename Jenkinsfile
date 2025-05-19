@@ -96,7 +96,7 @@ pipeline {
             steps {
                 sh 'mkdir -p results/'
                 sh '''
-                   trufflehog git file://. --only-verified --fail > results/trufflehog_report.txt || true
+                trufflehog git file://. --only-verified --json > results/trufflehog_report.json || true
                 '''
             }
 
