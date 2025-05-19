@@ -92,17 +92,17 @@ pipeline {
             }
         }
         
-        stage('TruffleHog Scan') {
+         stage('TruffleHog Scan') {
             steps {
                 sh 'mkdir -p results/'
                 sh '''
-                trufflehog git file://. --only-verified --json > results/trufflehog_report.json || true
+                   trufflehog git file://. --only-verified --json > results/trufflehog_report.json || true
                 '''
             }
 
             post {
                 always {
-                    archiveArtifacts artifacts: 'results/trufflehog_report.txt', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'results/trufflehog_report.json', allowEmptyArchive: true
                 }
             }
         }
